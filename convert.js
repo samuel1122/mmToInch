@@ -1,3 +1,4 @@
+const { setgroups } = require("process");
 
 try{
 const { Poppler } = require("node-poppler");
@@ -14,7 +15,7 @@ var dimentions = []
     //const poppler = new Poppler('../../../usr/bin');
 
     poppler.pdfToText(file).then((text) => {
-        let pages = text.split('Handled by');
+        let pages = text.split('Handled');
         //pages.pop();
         var quotationNo =  pages[0].split(`Quotation`)[1].split("/")[2].slice(0,6);
         
@@ -65,12 +66,44 @@ else
 
 
 } 
+console.log(SetGrups)
+
+for(i=0 ;i<SetGrups.length;i++)
+
+{
+if(SetGrups[i].length==1)
+{
+    grup.push(SetGrups[i][0])
+if(i+1==SetGrups.length)
+{SetGrups.push(grup)}
+}
+
+
+
+else{
+
+    if(grup.length>0)
+    {
+        SetGrups.push(grup);
+        grup = []
+    }
+}
+
+}
+
+SetGrups= SetGrups.filter((x)=>{return x.length>1})
+SetGrups = SetGrups.sort((a,b)=>{return a[0][2]-b[0][2]})
+
+
+
 //console.log(SetGrups[0])   
 
 SetGrups= SetGrups.map((x)=>{
 
     return x.map((y)=>{return y.flat()})
 })
+grup =[];
+
 
 console.log(SetGrups)
 console.log('SET GRUP')
@@ -79,8 +112,14 @@ SetGrups = SetGrups.map((x)=>{
     var setSum = x.map((y)=>{return parseInt(y[0])}).reduce((a,b)=>{return a+b})+(x.length-1)*6
     
     var setSumVertical = [...new Set( x.map((y)=>{return parseInt(y[1])}))]
-    const vSetSum = setSumVertical.reduce((a,b)=>{return a+b})+(setSumVertical.length-1)*6
+    console.log(setSumVertical)
+    var vSetSum = setSumVertical.reduce((a,b)=>{return a+b})+(setSumVertical.length-1)*6;
+    if(parseInt(vSetSum)>3300) {
+        console.log(vSetSum)
+vSetSum = setSumVertical.sort((a,b)=>{return parseInt(a)-parseInt(b)})[(setSumVertical.length-1)];
+console.log(vSetSum)
 
+    } 
     if(setSumVertical.length>1)
     {
         
@@ -166,6 +205,19 @@ dimentions= allWindows
                 {
                     console.log('last               file')
                     fs.unlinkSync(pdfFileName);
+                }
+              
+            })
+
+            worker.on('error',(code)=>{
+                console.log('finish')
+                filesCounter= filesCounter+1
+                if(filesCounter<dimentions.length)
+                {createNewWorker(val+1)}
+                else
+                {
+                    //console.log('last               file')
+                    //fs.unlinkSync(pdfFileName);
                 }
               
             })

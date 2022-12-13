@@ -7,7 +7,7 @@ const process =  require('process');
 const { parentPort, workerData,Worker } = require('worker_threads')
 const trimImage   = require('trim-image')
 
-
+try{
 
 
 
@@ -251,6 +251,7 @@ else{
  // console.log("horisontal")
   //horisontalArr.forEach((x)=>{console.log(x)});
   console.log("vertical")
+  PagePaths = [PagePaths[1],...PagePaths.slice(alllongIndex[((alllongIndex.length/2))-1],PagePaths.length)]
   VerticalArr=VerticalArr.sort((a,b)=>{return a[1][1][0]-b[1][1][0]}).map((x,index,arr)=>{
     //lowerBoundY = ySort[0]
     //upperBoundY= ySort[ySort.length-1]
@@ -278,7 +279,6 @@ console.log(ySort)
   console.log(upperBoundX)
   horisontalArr.forEach((x)=>{ console.log(x)});
 
-  PagePaths = [PagePaths[1],...PagePaths.slice(alllongIndex[((alllongIndex.length/2))-1],PagePaths.length)]
   
   PagePaths = PagePaths.filter((x)=>{return !/<g /.test(x)&& !/g>/.test(x)||/svg/.test(x)})
 ///*
@@ -294,6 +294,7 @@ if(/glyph/.test(PagePaths[i]))
 }
 }
 PagePaths= PagePaths.filter((x)=>{return !/100%,0%,0%/.test(x)});
+
 //*/
 PagePaths = PagePaths.filter((x)=>{return x.length<600})
 
@@ -819,7 +820,7 @@ const generetePahtsV = (length, x ,y)=>
 
 }
 
-
+//paramsV= paramsV.filter((x)=>{return parseFloat(x[0])>230})
 
 for(k=0;k<params.length;k++)
 {
@@ -858,9 +859,6 @@ let style = `<style>
           console.log('INDEX INDEX INDEX INDEX INDEX INDEX')
           console.log(windowPathsEndIndex)
 
-     if(parseFloat(NewPaths[NewPaths.length-1].split('translate')[1].split(' ')[1].split(')')[0])<300)
-     
-     {NewPaths.pop()}
 
 
 
@@ -1011,10 +1009,11 @@ return pathSubStr
 
     console.log(laminated)
     //78.49884%,78.49884%,78.49884% grey arows
-    PagePaths = PagePaths.filter((x)=>{return !/78.49884%,78.49884%,78.49884%/.test(x)})
+    //PagePaths = PagePaths.filter((x)=>{return !/78.49884%,78.49884%,78.49884%/.test(x)})
 
-     let converted = [PagePaths[0],PagePaths[1],style,...PagePaths.slice(1,PagePaths.length-1),...NewPaths,...PagePaths.slice(2,windowPathsEndIndex+3),...tempered,...laminated,`</svg>`].join("   ")
-
+     let converted = [PagePaths[0],PagePaths[1],style,...PagePaths.slice(1,PagePaths.length-1),...NewPaths,...tempered,...laminated,`</svg>`].join("   ")
+console.log(converted)
+//fs.writeFileSync(`converted${svgFileName}`,converted);
      sharp(Buffer.from(converted)).resize(heigth=3000,width=3000, 
       {
         fit: 'outside',
@@ -1101,22 +1100,22 @@ let initialsum = arr.reduce((x,y)=>{return parseFloat(x)+parseFloat(y)})
 if(Math.round(initialsum)==length||Math.round(initialsum)==length-1||Math.round(initialsum)==length+1)
 {return arr}
 
-if(arr.length==1)
-{
-  return [length.toString()]
-}
-if(arr.length==2)
-  {
-    if(arr.some((x=>{return Math.round(parseFloat(x)*2)==length})))
-    return [ (length/2).toString(),(length/2).toString()]
-  }
+//if(arr.length==1)
+//{
+  //return [length.toString()]
+//}
+//if(arr.length==2)
+  //{
+   // if(arr.some((x=>{return Math.round(parseFloat(x)*2)==length})))
+   // return [ (length/2).toString(),(length/2).toString()]
+  //}
 
-  if(arr.length==3&&arr[0]==arr[2]&&(length-(parseFloat(arr[0])+parseFloat(arr[2])))<100)
-  {
-    let dif =  Math.round(length -parseFloat(arr[0])-parseFloat(arr[2])).toString()
-    return [arr[0],dif,arr[2]]
+  //if(arr.length==3&&arr[0]==arr[2]&&(length-(parseFloat(arr[0])+parseFloat(arr[2])))<100)
+  //{
+   // let dif =  Math.round(length -parseFloat(arr[0])-parseFloat(arr[2])).toString()
+   // return [arr[0],dif,arr[2]]
   
-  }
+  //}
 
     var arrString = arr.join(' ').split("");
 
@@ -1162,7 +1161,7 @@ if(arr.length==2)
     }
     const variant = arrString.join('').split(" ").map((x)=>{return parseFloat(x.replace("x",""))})
     const sum = Math.round(variant.reduce((a,b)=>{return a+b}))
-    if(sum == length&&!variant.some((x)=>{x==""}))
+    if(sum == length&&!variant.some((x)=>{x==""})&&!variant.some((x)=>{x=="1"}))
     {combinations.push(variant)}
     
     
@@ -1239,13 +1238,42 @@ const converPagetToInches = (filename)=>{
         return image
         }
         const allPaths = DeleteDef(fs.readFileSync(`${filename}`,"utf8").split(/\n/))
-     PagePaths = [...new Set(allPaths)].filter((x)=>{return !/" stroke:none;fill-rule:nonzero;fill:rgb\(100%,100%,100%/.test(x)}); //DeleteDef(fs.readFileSync(`${filename}`,"utf8").split(/\n/));
+
+
+
+
+     PagePaths = [...new Set(allPaths)].filter((x)=>{return !/" stroke:none;fill-rule:nonzero;fill:rgb\(100%,100%,100%/.test(x)});
+     
+     for(l=0;l<PagePaths.length;l++)
+     {
+       if(/78.49884%,78.49884%,78.49884%/.test(PagePaths[l]))
+       {
+         for(j=l;j<l+15;j++)
+         {
+          if(/78.49884%,78.49884%,78.49884%/.test(PagePaths[j]))
+          {
+            PagePaths[j]="";
+          }
+          if(PagePaths[j].length>700&&!/100%,0%,0%/.test(PagePaths[j]))
+          {
+            PagePaths[j]='';
+           break
+          }
+         }
+     
+       }
+     }
+     
+     
+     
+     //DeleteDef(fs.readFileSync(`${filename}`,"utf8").split(/\n/));
 
 
 
 var jpgPaths = []
     console.log(PagePaths[PagePaths.length-2])
 
+    
 for(i=0;i<PagePaths.length;i++){
   //console.log(val)
   if(PagePaths[i].length>700&&!/100%,0%,0%/.test(PagePaths[i]))
@@ -1392,3 +1420,8 @@ converPagetToInches(svgFileName)
 
 ConvertDimentionsToInches(  ...workerData[0]  )
 
+}
+catch{
+  console.log('error')
+  process.exit(0)
+}

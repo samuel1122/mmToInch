@@ -1,5 +1,7 @@
 const { parentPort, workerData,Worker } = require('worker_threads')
 const fs = require('fs');
+
+try{
 const axios = require('axios')
 const file = fs.readFileSync(workerData[0]);
 const sharp = require("sharp");
@@ -7,6 +9,8 @@ var NoOfReq = 0;
 console.log('copy To Google Drive')
 console.log(workerData)
 var data = ''
+
+
 const process =  require('process'); 
 var FileName = workerData[0].split(`.png`)[0].split(`_`)
 FileName = FileName[FileName.length-1]
@@ -45,7 +49,10 @@ let url =`https://script.google.com/macros/s/AKfycbx9PSbHalS9vJE1qbwESAOhgMA-SUV
 
 
     
-    }).catch(()=>{copyFiles()})
+    }).catch(()=>{
+      
+      process.exit(0)
+    })
 
 
 
@@ -63,5 +70,6 @@ sharp(file).flatten({ background: { r: 255, g: 255, b: 255, alpha: 255 } })
 
     copyFiles()
 })
-
+}
+catch{console.log('error')}
 

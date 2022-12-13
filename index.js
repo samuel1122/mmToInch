@@ -87,7 +87,12 @@ fetch(apiURL, { method: "POST", body: "" })
    queue.push(`${idStr.replace(/\_/g,"a")}.pdf`);
    newParsingFunc()
    }
-   else{queue.push(`${idStr.replace(/\_/g,"a")}.pdf`)}
+   else{
+    if(!queue.some((x)=>{return x==`${idStr.replace(/\_/g,"a")}.pdf`}))
+    {
+    queue.push(`${idStr.replace(/\_/g,"a")}.pdf`)
+    }
+}
 }
 else{console.log('Already exist')}
 
