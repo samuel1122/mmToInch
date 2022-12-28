@@ -7,7 +7,7 @@ const process =  require('process');
 const { parentPort, workerData,Worker } = require('worker_threads')
 const trimImage   = require('trim-image')
 
-try{
+
 
 
 
@@ -1238,12 +1238,28 @@ const converPagetToInches = (filename)=>{
         return image
         }
         const allPaths = DeleteDef(fs.readFileSync(`${filename}`,"utf8").split(/\n/))
+        PagePaths = [...new Set(allPaths)];
 
+        
 
+        for(k=0;k<PagePaths.length;k++)
+        {
+         let condition =/fill:rgb\(100%,100%,100%\)/.test(PagePaths[k])&&/fill:rgb\(100%,100%,100%\)/.test(PagePaths[k+1])&&/fill:rgb\(100%,100%,100%\)/.test(PagePaths[k+2])&&/fill:rgb\(100%,100%,100%\)/.test(PagePaths[k+3])&&/fill:rgb\(100%,100%,100%\)/.test(PagePaths[k+4])&&/fill:rgb\(0%,0%,0%\)/.test(PagePaths[k+5])
+         
+         if(condition)
+         {
+         PagePaths[k]=""
+          PagePaths[k+1]=""
+          PagePaths[k+2]=""
+          PagePaths[k+3]=""
+          PagePaths[k+4]=""
+          PagePaths[k+5]=""
+   } 
+        }
 
+        PagePaths= PagePaths.filter((x)=>{return !/" stroke:none;fill-rule:nonzero;fill:rgb\(100%,100%,100%/.test(x)})
 
-     PagePaths = [...new Set(allPaths)].filter((x)=>{return !/" stroke:none;fill-rule:nonzero;fill:rgb\(100%,100%,100%/.test(x)});
-     
+    
      for(l=0;l<PagePaths.length;l++)
      {
        if(/78.49884%,78.49884%,78.49884%/.test(PagePaths[l]))
@@ -1263,6 +1279,7 @@ const converPagetToInches = (filename)=>{
      
        }
      }
+
      
      
      
@@ -1420,8 +1437,4 @@ converPagetToInches(svgFileName)
 
 ConvertDimentionsToInches(  ...workerData[0]  )
 
-}
-catch{
-  console.log('error')
-  process.exit(0)
-}
+

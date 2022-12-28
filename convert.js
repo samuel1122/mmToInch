@@ -1,4 +1,3 @@
-const { setgroups } = require("process");
 
 try{
 const { Poppler } = require("node-poppler");
@@ -243,8 +242,10 @@ dimentions= allWindows
 
 convertToSvg(file,0)
 console.log('dimentions')
+fs.writeFileSync(`./logs/${quotationNo}.txt`,dimentions.toString())
 console.log(dimentions)
 })
 
 }
 catch{console.log('error')}
+// 4x stroke:none;fill-rule:evenodd;fill:rgb(100%,100%,100%) 1x stroke:none;fill-rule:evenodd;fill:rgb(100%,100%,100%);fill-opacity:1 
