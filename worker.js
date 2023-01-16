@@ -252,7 +252,7 @@ else{
   //horisontalArr.forEach((x)=>{console.log(x)});
   console.log("vertical")
   PagePaths = [PagePaths[1],...PagePaths.slice(alllongIndex[((alllongIndex.length/2))-1],PagePaths.length)]
-  VerticalArr=VerticalArr.sort((a,b)=>{return a[1][1][0]-b[1][1][0]}).map((x,index,arr)=>{
+  VerticalArr=VerticalArr.sort((a,b)=>{return a[1][1].slice().sort((a,b)=>a-b)[0]-b[1][1].slice().sort((a,b)=>a-b)[0]}).map((x,index,arr)=>{
     //lowerBoundY = ySort[0]
     //upperBoundY= ySort[ySort.length-1]
   
@@ -261,10 +261,13 @@ else{
     {
       x[1][0]= arr[((index+1)/2)-1][1][0]
       return x
+
     }
     else{return x}
 
   }).slice(VerticalArr.length/2,VerticalArr.length)
+  //console.log(')
+  VerticalArr.forEach((x)=>{console.log(x[1][1])})
   let ySort = VerticalArr.sort((x,y)=>{return parseInt(y[0])-parseInt(x[0])})
 console.log(ySort)
    lowerBoundY = ySort[0][0]
@@ -277,7 +280,23 @@ console.log(ySort)
   upperBoundX = horisontalArr[horisontalArr.length-1][0]
   console.log(lowerBoundX)
   console.log(upperBoundX)
-  horisontalArr.forEach((x)=>{ console.log(x)});
+  VerticalArr.forEach((x)=>{
+     console.log(x)
+    
+     x[1][1].forEach((y,index)=>{
+
+      if( y<270)
+      {
+        x[1][1][index]='';
+        x[1][0][index]=''
+      }
+      
+     })
+    x[1][0]= x[1][0].filter((val)=>{return val !=""})
+    x[1][1]= x[1][1].filter((val)=>{return val !=""})
+
+
+    });
 
   
   PagePaths = PagePaths.filter((x)=>{return !/<g /.test(x)&& !/g>/.test(x)||/svg/.test(x)})
@@ -1274,11 +1293,11 @@ const converPagetToInches = (filename)=>{
           {
             PagePaths[j]='';
            break
-          }
+         }
          }
      
        }
-     }
+    }
 
      
      
@@ -1360,6 +1379,7 @@ for(i=0;i<PagePaths.length;i++){
 
 const convertToJpg = (val)=>
 {
+  
   console.log('itirator')
   console.log(val)
 

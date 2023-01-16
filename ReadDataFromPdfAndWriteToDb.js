@@ -5,12 +5,13 @@ const { type } = require('os');
 const { parse } = require('querystring');
 var format = require('pg-format')
 
-var sashesHardwareArr = [['hardwareType','Hardware type'],['hardwareSecurityLevel','Hardware security level']]
+var sashesHardwareArr = [['hardwareType','Hardware type'],['hardwareSecurityLevel','Hardware security level'],['handleType','Handle type'],['handleColor','Handle color'],['handleHeight','Handle height'],['specialHinges','Special hinges'],['limiters','Sash vent limiter'],['tiltBlock','Block of the tilt function']]
 const poppler = new Poppler();
 const pdfFileName = 'OF 2022 001670.pdf'
 const file = fs.readFileSync(pdfFileName)
 poppler.pdfToText(file).then((text) => {
     //fs.writeFileSync('abc.txt',text);
+    console.log(text)
     const autor = text.split('Handled by')[1].split(/\r\n/)[0].trim()
     const quotationNo =parseInt (text.split('Quotation OF/')[1].split('/')[1].split(/\n/)[0].trim())
     let allWindows = text.split('System :');
@@ -105,6 +106,7 @@ poppler.pdfToText(file).then((text) => {
         catch{'default glazing reading error'}
         
         const defaultGlazing = x[0].split(/Glazing\r\n/)[1].split(/\r\n/)[0]
+        const page =x[0];
 
         
     let type =
@@ -127,7 +129,14 @@ poppler.pdfToText(file).then((text) => {
         autor:autor,
         swisspacer:false,
         sashes:{}
+        ,
+        dimentions:[{}]
         }
+try{
+        type.dimentions[0]['width']= x[0].split('Dimensions')[1].split(/\r\n/)[0].trim().split('x')[0].trim()
+        type.dimentions[0]['height']= x[0].split('Dimensions')[1].split(/\r\n/)[0].trim().split('x')[0].trim()
+}
+catch{console.log('dimentions read error')}
 
 
  // Sash\r\n
@@ -187,7 +196,17 @@ else
 
 }
 catch{'fiting read error'}
+try{
+    let index =page.replace(/price\r\n.*\r\n/,'').split('Glazing').length -1
 
+    type.sashes['sash1']['glazingDimentioins']={};
+    type.sashes['sash1']['glazingDimentioins']['width']=page.replace(/price\r\n.*\r\n/,'').split('Glazing')[index].match(/\r\n.* x .*\r\n/g)[0].split(' x')[0].trim()
+    type.sashes['sash1']['glazingDimentioins']['height']=page.replace(/price\r\n.*\r\n/,'').split('Glazing')[index].match(/\r\n.* x .*\r\n/g)[0].split('x ')[1].split(/\r\n/)[0].trim()
+
+
+}
+catch
+{}
 
 
 sashesHardwareArr.forEach((val)=>{
@@ -240,6 +259,57 @@ if(x[0].split(/Sash \d\r\n/).length>1)
    sashesHardware.forEach((x, index)=>{
     let sashKey =`sash${index+1}`
     type.sashes[sashKey]={}
+
+
+
+
+    try{
+
+        sashesHardwareArr.forEach((val)=>{
+
+            let reg = new RegExp(`${val[1]}`)
+
+            if(reg.test(x))
+            {
+                type.sashes[sashKey][val[0]]=x.split(reg)[1].split(/\r\n/)[0].trim()
+            }
+            else{
+                type.sashes[sashKey][val[0]]=''
+            }
+
+
+            
+
+
+        
+        
+        })
+
+
+
+
+    }
+
+    catch{}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
 
     
@@ -303,7 +373,14 @@ try{
     }
 }
 catch {'fitting read error'}
-
+try{
+    let index =page.replace(/price\r\n.*\r\n/,'').split('Glazing').length -1
+    type.sashes[sashKey]['glazingDimentioins']={}
+    type.sashes[sashKey]['glazingDimentioins']['width']=page.replace(/price\r\n.*\r\n/,'').split('Glazing')[index].match(/\r\n.* x .*\r\n/g)[parseInt(sashKey.split('sash')[1]-1)].split(' x')[0].trim()
+    type.sashes[sashKey]['glazingDimentioins']['height']=page.replace(/price\r\n.*\r\n/,'').split('Glazing')[index].match(/\r\n.* x .*\r\n/g)[parseInt(sashKey.split('sash')[1]-1)].split('x ')[1].split(/\r\n/)[0].trim()
+}
+catch
+{}
 
 
 
@@ -403,14 +480,16 @@ console.log('error line 205')
        return type;
 
     })
-    console.log(singleWindows[5].sashes)
+    //console.log(singleWindows[5].sashes)
+    console.log('SINGLE WINDOWS')
+    singleWindows.forEach((x)=>{console.log(x.sashes[0])})
     //console.log(singleWindows[1].sashes)
   //  console.log(singleWindows[1])
    // console.log(singleWindows)
   // console.log(setPartId[0])
 
     setParts= setParts.map((x)=>{
-
+        var pageData =x[0]
         let type =
         {
             project_id:'',
@@ -423,22 +502,71 @@ console.log('error line 205')
             louver:false,
             limiters:false,
             NailingFin: false,
-
             color:"",
             color_code:'',
             swisspacer:false,
             sashes:{}
+            ,
+            dimentions:{}
             }
             try{
+
+
+
+
+
+
+
+
+
+
+
+                try{
+        type.dimentions['width']= x[0].split('Dimensions')[1].split(/\r\n/)[0].trim().split('x')[0].trim()
+        type.dimentions['height']= x[0].split('Dimensions')[1].split(/\r\n/)[0].trim().split('x')[0].trim()
+}
+catch{console.log('dimentions read error')}
+
+
+
+                
     
                 let sashArr = x[0].split(/Sash\r\n/);
                 if(sashArr.length==2&&/Messages/.test(x[0]))
                 {
                     type.sashes.sash1= {}
-                    
-                    
-                
-                   let sashString =sashArr[1].split(/Messages/)[0]
+
+                    let sashString =sashArr[1].split(/Messages/)[0]
+
+                   // type.sashes['sash1']['glazingDimentioins']={};
+                    //type.sashes['sash1']['glazingDimentioins']['width']='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+                    //type.sashes['sash1']['glazingDimentioins']['height']='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+
+                    sashesHardwareArr.forEach((val)=>{
+
+                        let reg = new RegExp(`${val[1]}`)
+                        //let reg = new RegExp(`${val[1]}\\r\\n`)
+                        
+                        try
+                        {
+                        if(reg.test(sashString))
+                        {
+                        
+                            type.sashes['sash1'][val[0]]= sashString.split(reg)[1].split(/\r\n/)[0].trim();
+                        }
+                        else
+                        {type.sashes['sash1'][val[0]]=''}
+                        }
+                        
+                        catch
+                        {
+                            console.log(`error`)
+                        }
+                        
+                        
+                        
+                        })
+
                    if(/Fix in frame/.test(sashString))
                    { 
                  type.sashes.sash1.fixed = true;
@@ -478,6 +606,15 @@ console.log('error line 205')
 
 
                 type.sashes['sash1']['glazing']=defaultGlazing;
+
+                //let i =pageData.replace(/price\r\n.*\r\n/,'').split('Glazing').length -1
+
+       
+
+
+
+
+                
                 }
                 
                    }
@@ -574,12 +711,41 @@ if(x[0].split(/Sash \d\r\n/).length>1)
        sashesHardware.push(x[0].split(/Sash \d\r\n/)[i+1].split(/Messages/)[0])
         }
     }
-    console.log(sashesHardware)
+   // console.log(sashesHardware)
    
    //type.sashes =sashesHardware
    sashesHardware.forEach((x, index)=>{
     var sashKey =`sash${index+1}`
     type.sashes[sashKey]={}
+
+
+    try{
+        sashesHardwareArr.forEach((val)=>{
+
+            let reg = new RegExp(`${val[1]}`)
+        
+            if(reg.test(x))
+            {
+                type.sashes[sashKey][val[0]]=x.split(reg)[1].split(/\r\n/)[0].trim()
+            }
+            else{
+                type.sashes[sashKey][val[0]]=''
+            }
+        
+        
+            
+        
+        
+        
+        
+        })
+
+
+
+
+    }
+
+    catch{}
     
     
     
@@ -637,6 +803,11 @@ else{type.sashes[sashKey]['glazing']= defaultGlazing
 }
 catch{console.log('glazing read error line 248')}
 
+//let i =x.replace(/price\r\n.*\r\n/,'').split('Glazing').length -1
+   // type.sashes[sashKey]='dfsaaaaaaaaaaaaaa'
+   // type.sashes[sashKey]['glazingDimentioins']['width']='ffffffffffffffffffffffffffffffffffffff'//x.replace(/price\r\n.*\r\n/,'').split('Glazing')[1]
+   // type.sashes[sashKey]['glazingDimentioins']['height']="sssssssssssssssssssssssssssssssssssssss"//x.replace(/price\r\n.*\r\n/,'').split('Glazing')[1]
+
 
 
 
@@ -644,6 +815,10 @@ catch{console.log('glazing read error line 248')}
 
 
 })
+
+
+
+
 
 
 
@@ -661,6 +836,7 @@ console.log('error line 205')
 // EXTRACT SASHES DATA IF MORE THAN ONE --------SET PARTS
 
 var defaultGlazing = x[0].split(/Glazing\r\n/)[1].split(/\r\n/)[0].trim();
+
 try{
     if(x[0].split(/Sash \d\r\n/).length>1)
     {
@@ -678,7 +854,40 @@ try{
        //type.sashes =sashesHardware
        sashesHardware.forEach((x, index)=>{
         let sashKey =`sash${index+1}`
-        type.sashes[sashKey]={}
+      
+
+        let i =pageData.replace(/price\r\n.*\r\n/,'').split('Glazing').length -1
+    type.sashes[sashKey]['glazingDimentioins']={}
+    type.sashes[sashKey]['glazingDimentioins']['width']=pageData.replace(/price\r\n.*\r\n/,'').split('Glazing')[i].match(/\r\n.* x .*\r\n/g)[parseInt(sashKey.split('sash')[1]-1)].split(' x')[0].trim()
+    type.sashes[sashKey]['glazingDimentioins']['height']=pageData.replace(/price\r\n.*\r\n/,'').split('Glazing')[i].match(/\r\n.* x .*\r\n/g)[parseInt(sashKey.split('sash')[1]-1)].split('x ')[1].split(/\r\n/)[0].trim()
+
+       // type.sashes[sashKey]['glazingDimentioins']={};
+    //type.sashes[sashKey]['glazingDimentioins']['width']=pageData
+    //type.sashes[sashKey]['glazingDimentioins']['height']=pageData
+
+
+
+
+
+        sashesHardwareArr.forEach((val)=>{
+
+            let reg = new RegExp(`${val[1]}`)
+        
+            if(reg.test(x))
+            {
+                type.sashes[sashKey][val[0]]=x.split(reg)[1].split(/\r\n/)[0].trim()
+            }
+            else{
+                type.sashes[sashKey][val[0]]=''
+            }
+        
+        
+            
+        
+        
+        
+        
+        })
         
     
         
@@ -776,9 +985,44 @@ try{
     if(sashArr.length==2&&/Messages/.test(x[0]))
     {
         type.sashes.sash1= {}
-        
+let sashString =sashArr[1].split(/Messages/)[0];
+
+
+
+
+
+//type.sashes['sash1']['glazingDimentions']={a:x}
+let i =x[0].replace(/price\r\n.*\r\n/,'').split('Glazing').length -1
+
+type.sashes['sash1']['glazingDimentioins']={};
+type.sashes['sash1']['glazingDimentioins']['width']=x[0].replace(/price\r\n.*\r\n/,'').split('Glazing')[i].match(/\r\n.* x .*\r\n/g)[0].split(' x')[0].trim()
+type.sashes['sash1']['glazingDimentioins']['height']=x[0].replace(/price\r\n.*\r\n/,'').split('Glazing')[i].match(/\r\n.* x .*\r\n/g)[0].split('x ')[1].split(/\r\n/)[0].trim()
+
+
+sashesHardwareArr.forEach((val)=>{
+
+    let reg = new RegExp(`${val[1]}`)
+    //let reg = new RegExp(`${val[1]}\\r\\n`)
     
-       let sashString =sashArr[1].split(/Messages/)[0]
+    try
+    {
+    if(reg.test(sashString))
+    {
+    
+        type.sashes['sash1'][val[0]]= sashString.split(reg)[1].split(/\r\n/)[0].trim();
+    }
+    else
+    {type.sashes['sash1'][val[0]]=''}
+    }
+    
+    catch
+    {
+        console.log(`error `)
+    }
+    
+    
+    
+    })
 
         if(/Fitting\r\n/.test(sashString))
         {
@@ -816,7 +1060,10 @@ try{
     catch{
     console.log('grille reading error line 168')
     }
+    try{
     type.sashes['sash1']['glazing']=defaultGlazing
+    }
+    catch{}
     
     }
     
@@ -840,8 +1087,9 @@ try{
     
     
     })
-    setParts.forEach((x)=>console.log(x.sashes))
-
+    //console.log('SETS')
+    //setParts.forEach((x)=>console.log(x.sashes))
+//console.log('sets end')
     sets = sets.map((x)=>{
 
         let type =
@@ -904,7 +1152,7 @@ try{
         let colorCode = CurrentSetParts[0].color_code;
         let swisspacer = CurrentSetParts[0].swisspacer
         let sashes = CurrentSetParts.map((x)=>{return x.sashes})
-        
+        let dimentions = CurrentSetParts.map((x)=>{return x.dimentions})
 /*      s
         system:'',
         typeId:'',
@@ -935,9 +1183,11 @@ try{
             color_code: colorCode,
             autor:autor,
             swisspacer:swisspacer,
-            sashes:sashes
+            sashes:sashes,
+            dimentions:dimentions
        
         }
+       // console.log(type)
         SetSums.push(type)
         //console.log(type)
         //console.log(priceSum)
@@ -951,7 +1201,7 @@ singleWindows= singleWindows.map((x)=>{ x.typeId=parseInt(x.typeId.split(" ")[1]
 var rows = [];
 var keys = [];
 var keysVar =[];
-console.log(SetSums[0])
+//console.log(SetSums[0])
 const allWindowsArr =[...SetSums,...singleWindows]
 //console.log(allWindowsArr)
 for (let key in allWindowsArr[0])
@@ -986,7 +1236,7 @@ const client = new Client({
     host:"34.27.240.167",
     user:'postgres',
     port:5432,
-    password:"Wscbwc11",
+    password:"",
     database:'postgres'
 
 })
@@ -997,7 +1247,7 @@ client.connect().then(()=>{
 
 
 
-        await client.query(`INSERT INTO window_types (project_id,system,type_id,unit_price,unit_weight,grille,uw,louver,limiters,nailing_fin,no_of_parts,quotation_no,color,color_code,autor,swisspacer,sashes) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)` ,x,(err,res)=>{
+        await client.query(`INSERT INTO window_types (project_id,system,type_id,unit_price,unit_weight,grille,uw,louver,limiters,nailing_fin,no_of_parts,quotation_no,color,color_code,autor,swisspacer,sashes,dimentions) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)` ,x,(err,res)=>{
             if(!err)
         {
             console.log(res.rows)

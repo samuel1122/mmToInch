@@ -1,3 +1,5 @@
+
+
 const fs = require('fs')
 const {Worker,workerData} = require("worker_threads");
 const schedule = require('node-schedule');
@@ -87,12 +89,7 @@ fetch(apiURL, { method: "POST", body: "" })
    queue.push(`${idStr.replace(/\_/g,"a")}.pdf`);
    newParsingFunc()
    }
-   else{
-    if(!queue.some((x)=>{return x==`${idStr.replace(/\_/g,"a")}.pdf`}))
-    {
-    queue.push(`${idStr.replace(/\_/g,"a")}.pdf`)
-    }
-}
+   else{queue.push(`${idStr.replace(/\_/g,"a")}.pdf`)}
 }
 else{console.log('Already exist')}
 
